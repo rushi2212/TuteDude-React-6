@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap
-import { Link } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { Link, useLocation } from "react-router-dom";
 
 const API_URL = "https://jsonplaceholder.typicode.com/users";
 
@@ -10,24 +9,26 @@ const Display = () => {
   const [myData, setData] = useState([]);
   const location = useLocation();
 
-  function handleDelete(id) {
-    Axios.delete(`https://jsonplaceholder.typicode.com/users/${id}`).then(
-      () => {
-        setData((prevData) => prevData.filter((user) => user.id !== id));
-      }
-    );
-  }
+  const handleDelete = async (id) => {
+    try {
+      await Axios.delete(`${API_URL}/${id}`);
+      setData((prevData) => prevData.filter((user) => user.id !== id));
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  };
 
-  function setDataToStorage(id, name, email, username) {
+  const setDataToStorage = (id, name, email, username) => {
     localStorage.setItem("id", id);
     localStorage.setItem("name", name);
     localStorage.setItem("email", email);
     localStorage.setItem("username", username);
-  }
+  };
 
   useEffect(() => {
-    Axios.get(API_URL)
-      .then((response) => {
+    const fetchData = async () => {
+      try {
+        let response = await Axios.get(API_URL);
         let users = response.data;
 
         if (location.state?.newUser) {
@@ -46,10 +47,12 @@ const Display = () => {
         }
 
         setData(users);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchData();
   }, [location.state]);
 
   return (
@@ -83,9 +86,7 @@ const Display = () => {
                 </Link>
                 <button
                   className="btn btn-danger"
-                  onClick={() => {
-                    handleDelete(user.id);
-                  }}
+                  onClick={() => handleDelete(user.id)}
                 >
                   Delete
                 </button>

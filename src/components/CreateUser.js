@@ -10,27 +10,23 @@ const CreateUser = () => {
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    axios
-      .post("https://jsonplaceholder.typicode.com/users", {
-        name,
-        email,
-        username,
-      })
-      .then((res) => {
-        console.log(res);
-        setName("");
-        setEmail("");
-        setUsername("");
-        navigate("/", {
-          state: { newUser: res.data }, 
-        });
-      })
-      .catch((err) => {
-        console.error(err);
+    try {
+      const res = await axios.post("https://jsonplaceholder.typicode.com/users", {name, email, username, });
+
+      console.log(res);
+      setName("");
+      setEmail("");
+      setUsername("");
+
+      navigate("/", {
+        state: { newUser: res.data },
       });
+    } catch (err) {
+      console.error("Error creating user:", err);
+    }
   };
 
   return (
@@ -50,6 +46,7 @@ const CreateUser = () => {
             className="form-control"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
           />
         </div>
         <div className="mb-3">
@@ -59,6 +56,7 @@ const CreateUser = () => {
             className="form-control"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
         </div>
         <div className="mb-3">
@@ -68,6 +66,7 @@ const CreateUser = () => {
             className="form-control"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            required
           />
         </div>
         <button type="submit" className="btn btn-primary w-100">
