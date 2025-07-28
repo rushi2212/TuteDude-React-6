@@ -87,7 +87,7 @@ const Display = () => {
         ))}
       </div>
 
-      <div className="text-center">
+      <div className="text-center mb-4">
         <Link to="/create">
           <button className="btn btn-success mt-4">Add New User</button>
         </Link>

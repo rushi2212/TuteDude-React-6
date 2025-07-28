@@ -62,9 +62,7 @@ const Edit = () => {
 
   return (
     <div className="container mt-5">
-      <button className="btn btn-outline-secondary mb-3" onClick={() => window.history.back()}>
-        ⬅ Back
-      </button>
+      <button className="btn btn-outline-secondary mb-3" onClick={() => window.history.back()}>Back</button>
       <h2 className="mb-4 text-center">Edit User</h2>
 
       <form onSubmit={handleUpdate} className="mx-auto" style={{ maxWidth: "500px" }}>
