@@ -1,106 +1,103 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+
 import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const CreateUser = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  
   const [username, setUsername] = useState("");
   const [users, setUsers] = useState([]);
-  const [errors, setErrors] = useState({});
+  const [validationErrors, setValidationErrors] = useState({});
+
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch existing users to check for uniqueness
-    axios.get("https://jsonplaceholder.typicode.com/users")
-      .then(response => setUsers(response.data))
-      .catch(err => console.error("Error fetching users:", err));
+    const fetchUsers = async () => {
+
+      try {
+        const { data } = await axios.get("https://jsonplaceholder.typicode.com/users");
+
+        setUsers(data)
+      } catch (error) {
+        console.error("Failed to load users:", error);
+
+      }
+    };
+    fetchUsers();
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
 
-    // Validate uniqueness
-    const newErrors = {};
-    if (users.some(user => user.email === email)) {
-      newErrors.email = "Email already exists";
+    const errors = {};
+
+    if (users.find((u) => u.email === email)) {
+      errors.email = "Email is already registered.";
     }
-    if (users.some(user => user.username === username)) {
-      newErrors.username = "Username already exists";
+    if (users.find((u) => u.username === username)) {
+      errors.username = "Username is already used";
     }
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
       return;
     }
 
     try {
-      const res = await axios.post("https://jsonplaceholder.typicode.com/users", {
-        name,
-        email,
-        username,
-      });
+      const { data: createdUser } = await axios.post("https://jsonplaceholder.typicode.com/users", { name,  email, username, });
 
-      console.log(res);
       setName("");
       setEmail("");
       setUsername("");
-      setErrors({});
 
-      navigate("/", {
-        state: { newUser: res.data },
-      });
+      setValidationErrors({});
+
+      navigate("/", { state: { newUser: createdUser } });
     } catch (err) {
-      console.error("Error creating user:", err);
+      console.error("Error creating  user:", err);
     }
-  };
+  }, [email, username, name, users, navigate]);
 
   return (
     <div className="container mt-5">
-      <button
-        className="btn btn-secondary mb-3"
-        onClick={() => window.history.back()}
-      >
-        Home
+      <button className="btn btn-outline-secondary mb-3" onClick={() => window.history.back()}>
+         Back
       </button>
-      <h3 className="mb-4">Add User</h3>
-      <form onSubmit={handleSubmit} className="w-50 mx-auto">
+      <h2 className="mb-4 text-center">Create New User</h2>
+
+      <form onSubmit={handleSubmit} className="mx-auto" style={{ maxWidth: "500px" }}>
         <div className="mb-3">
-          <label className="form-label">Name:</label>
-          <input
-            type="text"
-            className="form-control"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+          <label htmlFor="name" className="form-label">Full Name</label>
+          <input id="name" type="text" className="form-control" value={name} onChange={(e) => setName(e.target.value)} required />
         </div>
+
         <div className="mb-3">
-          <label className="form-label">Email:</label>
-          <input
-            type="email"
-            className={`form-control ${errors.email ? "is-invalid" : ""}`}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+          <label htmlFor="email" className="form-label">Email Address</label>
+          <input id="email" type="email"  className={`form-control ${validationErrors.email ? "is-invalid" : ""}`} value={email} onChange={(e) => setEmail(e.target.value)}  required />
+
+          {validationErrors.email && (
+            <div className="invalid-feedback">{validationErrors.email}</div>
+          )}
+
         </div>
+
         <div className="mb-3">
-          <label className="form-label">Username:</label>
-          <input
-            type="text"
-            className={`form-control ${errors.username ? "is-invalid" : ""}`}
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          {errors.username && <div className="invalid-feedback">{errors.username}</div>}
+          <label htmlFor="username" className="form-label">Username</label>
+          <input id="username" type="text" className={`form-control ${validationErrors.username ? "is-invalid" : ""}`} value={username} onChange={(e) => setUsername(e.target.value)} required />
+
+          {validationErrors.username && (
+            <div className="invalid-feedback">{validationErrors.username}</div>
+          )}
+          
         </div>
+
         <button type="submit" className="btn btn-primary w-100">
-          Submit
+          Create Account
         </button>
       </form>
     </div>

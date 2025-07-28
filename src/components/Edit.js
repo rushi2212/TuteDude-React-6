@@ -1,55 +1,57 @@
 import React, { useState, useEffect } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
+
 import axios from "axios";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const Edit = () => {
-  const [id, setId] = useState("");
+  const [userId, setUserId] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [users, setUsers] = useState([]);
-  const [errors, setErrors] = useState({});
+
+  const [validationErrors, setValidationErrors] = useState({});
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Fetch existing users
-    axios.get("https://jsonplaceholder.typicode.com/users")
-      .then(response => setUsers(response.data))
-      .catch(err => console.error("Error fetching users:", err));
 
-    // Set current user data
-    setId(localStorage.getItem("id"));
+  useEffect(() => {
+    axios.get("https://jsonplaceholder.typicode.com/users")
+      .then((res) => setUsers(res.data))
+      .catch((err) => console.error("Failed to fetch users:", err));
+
+    setUserId(localStorage.getItem("id"));
     setName(localStorage.getItem("name"));
     setEmail(localStorage.getItem("email"));
     setUsername(localStorage.getItem("username"));
+
   }, []);
 
   const handleUpdate = (e) => {
     e.preventDefault();
 
-    // Validate uniqueness (excluding current user)
-    const newErrors = {};
-    const otherUsers = users.filter(user => user.id !== Number(id));
-    
-    if (otherUsers.some(user => user.email === email)) {
-      newErrors.email = "Email already exists";
-    }
-    if (otherUsers.some(user => user.username === username)) {
-      newErrors.username = "Username already exists";
+    const errors = {};
+    const others = users.filter((u) => u.id !== Number(userId));
+
+    if (others.some((u) => u.email === email)) {
+      errors.email = "Email already used.";
     }
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+
+    if (others.some((u) => u.username === username)) {
+      errors.username = "Username already taken.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
       return;
     }
 
-    // Simulate update and redirect
     navigate("/", {
       state: {
         updatedUser: {
-          id: Number(id),
+          id: Number(userId),
           name,
           email,
           username,
@@ -60,49 +62,38 @@ const Edit = () => {
 
   return (
     <div className="container mt-5">
-      <button
-        className="btn btn-secondary mb-3"
-        onClick={() => window.history.back()}
-      >
-        Home
+      <button className="btn btn-outline-secondary mb-3" onClick={() => window.history.back()}>
+        ⬅ Back
       </button>
-      <h3 className="mb-4">Edit User</h3>
-      <form onSubmit={handleUpdate} className="w-50 mx-auto">
+      <h2 className="mb-4 text-center">Edit User</h2>
+
+      <form onSubmit={handleUpdate} className="mx-auto" style={{ maxWidth: "500px" }}>
         <div className="mb-3">
-          <label className="form-label">Name:</label>
-          <input
-            type="text"
-            className="form-control"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+          <label htmlFor="name" className="form-label">Full Name</label>
+          <input id="name"  type="text"  className="form-control" value={name} onChange={(e) => setName(e.target.value)} required/>
         </div>
+
         <div className="mb-3">
-          <label className="form-label">Email:</label>
-          <input
-            type="email"
-            className={`form-control ${errors.email ? "is-invalid" : ""}`}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+          <label htmlFor="email" className="form-label">Email Address</label>
+          <input id="email"  type="email"  className={`form-control ${validationErrors.email ? "is-invalid" : ""}`} value={email}  onChange={(e) => setEmail(e.target.value)} required/>
+
+          {validationErrors.email && (
+            <div className="invalid-feedback">{validationErrors.email}</div>
+          )}
+
         </div>
+
         <div className="mb-3">
-          <label className="form-label">Username:</label>
-          <input
-            type="text"
-            className={`form-control ${errors.username ? "is-invalid" : ""}`}
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          {errors.username && <div className="invalid-feedback">{errors.username}</div>}
+          <label htmlFor="username" className="form-label">Username</label>
+          <input  id="username" type="text"  className={`form-control ${validationErrors.username ? "is-invalid" : ""}`} value={username}  onChange={(e) => setUsername(e.target.value)}  required />
+
+          {validationErrors.username && (
+            <div className="invalid-feedback">{validationErrors.username}</div>
+          )}
+          
         </div>
-        <button type="submit" className="btn btn-success w-100">
-          Submit
-        </button>
+
+        <button type="submit" className="btn btn-success w-100">Save Changes</button>
       </form>
     </div>
   );
